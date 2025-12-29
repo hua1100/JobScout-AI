@@ -1,0 +1,15 @@
+# API版本所需套件
+flask>=3.0.0
+celery[redis]>=5.3.0
+redis>=5.0.0
+flask-limiter>=3.5.0
+flask-cors>=4.0.0
+pyjwt>=2.8.0
+python-dotenv>=1.0.0
+scrapy>=2.11.0
+gunicorn>=21.2.0
+
+# 可選套件(監控和日誌)
+# flask-caching>=2.1.0
+# prometheus-flask-exporter>=0.22.0
+# sentry-sdk[flask]>=1.40.0

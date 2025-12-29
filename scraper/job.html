@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 職缺市場儀表板</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #F0F2F5;
+            --card-bg: #FFFFFF;
+            --text-primary: #1A1D1F;
+            --text-secondary: #6F767E;
+            --accent-orange: #FF6E30;
+            --accent-blue: #3F8CFF;
+            --accent-purple: #7F56D9;
+            --accent-green: #3DD598;
+            --border-radius-lg: 24px;
+            --border-radius-md: 16px;
+            --border-radius-sm: 12px;
+            --shadow-soft: 0px 4px 20px rgba(0, 0, 0, 0.03);
+            --shadow-card: 0px 2px 8px rgba(0, 0, 0, 0.04);
+            --font-family: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Header --- */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 40px;
+            background: transparent;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent-orange);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .nav-search {
+            background: var(--card-bg);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 400px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .nav-search i {
+            color: var(--text-secondary);
+        }
+
+        .nav-search input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-family: var(--font-family);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            box-shadow: var(--shadow-card);
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            padding: 0 40px 40px 40px;
+            display: grid;
+            grid-template-columns: 280px 1fr 340px;
+            grid-template-areas:
+                "kpi kpi kpi"
+                "main main side";
+            gap: 32px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+        }
+
+        /* --- KPI Section --- */
+        .kpi-section {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 24px;
+            margin-bottom: 8px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-lg);
+            padding: 24px;
+            flex: 1;
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .kpi-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .kpi-trend {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+            width: fit-content;
+        }
+
+        .trend-up {
+            background: rgba(61, 213, 152, 0.1);
+            color: var(--accent-green);
+        }
+
+        /* --- Large Chart Section --- */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-lg);
+            padding: 32px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .card-action {
+            background: #F4F5F7;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border: none;
+            cursor: pointer;
+        }
+
+        .large-chart-container {
+            height: 350px;
+            width: 100%;
+        }
+
+        /* --- Right Sidebar Section --- */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Filters Styling */
+        .filter-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .filter-group {
+            margin-bottom: 16px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #EFEFEF;
+            background: #F9FAFB;
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            outline: none;
+            appearance: none;
+        }
+
+        select.filter-select {
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231A1D1F%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px top 50%;
+            background-size: 10px auto;
+        }
+
+        /* Table Styling */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 1px solid #EFEFEF;
+        }
+
+        td {
+            padding: 16px;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .link-job {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .link-job:hover {
+            color: var(--accent-blue);
+        }
+
+        .job-tag {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #EFEFEF;
+            color: var(--text-secondary);
+        }
+
+        /* Utilities */
+        .text-orange {
+            color: var(--accent-orange);
+        }
+
+        .bg-orange-light {
+            background: rgba(255, 110, 48, 0.1);
+        }
+
+        .text-blue {
+            color: var(--accent-blue);
+        }
+
+        .bg-blue-light {
+            background: rgba(63, 140, 255, 0.1);
+        }
+
+        .text-purple {
+            color: var(--accent-purple);
+        }
+
+        .bg-purple-light {
+            background: rgba(127, 86, 217, 0.1);
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kpi-section {
+                flex-direction: column;
+            }
+
+            .main-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fas fa-fire-flame-curved"></i>
+            </div>
+            <div class="logo-text">JobScout AI</div>
+        </div>
+
+        <div class="nav-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchKeyword" placeholder="搜尋職缺、技能或公司..." oninput="filterJobs()">
+        </div>
+
+        <div class="nav-actions">
+            <button class="action-btn" onclick="location.reload()" title="重新整理">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+
+        <!-- KPI Metrics -->
+        <div class="kpi-section">
+            <div class="kpi-card">
+                <div class="kpi-icon bg-blue-light text-blue">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div>
+                    <div class="kpi-value" id="totalJobs">-</div>
+                    <div class="kpi-label">總職缺數</div>
+                </div>
+                <div class="kpi-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> Live
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon bg-orange-light text-orange">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div>
+                    <div class="kpi-value" id="avgSalary">-</div>
+                    <div class="kpi-label">平均月薪 (TWD)</div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon bg-purple-light text-purple">
+                    <i class="fas fa-code"></i>
+                </div>
+                <div>
+                    <div class="kpi-value" id="topSkill">-</div>
+                    <div class="kpi-label">最熱門技能</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+
+            <!-- Left Column (Main Charts & Table) -->
+            <div class="main-content">
+
+                <!-- Main Skills Chart -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div class="card-title">熱門技能排行 (Top 15)</div>
+                        <select class="card-action" style="outline:none;border:none;">
+                            <option>所有職缺</option>
+                        </select>
+                    </div>
+                    <div class="large-chart-container">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Salary Distribution & Industry -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <div class="card-title">薪資分布</div>
+                        </div>
+                        <div class="large-chart-container" style="height: 250px;">
+                            <canvas id="salaryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <div class="card-title">產業佔比</div>
+                        </div>
+                        <div class="large-chart-container" style="height: 250px;">
+                            <canvas id="industryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job List Table -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div class="card-title">最新職缺列表 (<span id="jobCount">0</span>)</div>
+                        <button class="card-action" onclick="window.print()">匯出報表</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>職缺名稱</th>
+                                    <th>公司</th>
+                                    <th>產業</th>
+                                    <th>薪資範圍</th>
+                                    <th>經驗</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobTableBody">
+                                <!-- Rows injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column (Sidebar) -->
+            <div class="sidebar">
+
+                <!-- Experience Chart -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div class="card-title">經驗要求</div>
+                    </div>
+                    <div class="large-chart-container" style="height: 380px;">
+                        <canvas id="experienceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-card">
+                    <div class="card-header">
+                        <div class="card-title">篩選條件</div>
+                    </div>
+                    <div class="filter-group">
+                        <label>產業類別</label>
+                        <select class="filter-select" id="filterIndustry" onchange="filterJobs()">
+                            <option value="">全部產業</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>工作地點</label>
+                        <select class="filter-select" id="filterLocation" onchange="filterJobs()">
+                            <option value="">全部地點</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>技能需求</label>
+                        <select class="filter-select" id="filterSkill" onchange="filterJobs()">
+                            <option value="">全部技能</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>經驗要求</label>
+                        <select class="filter-select" id="filterExperience" onchange="filterJobs()">
+                            <option value="">全部經驗</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>薪資範圍 (月薪)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" class="filter-select" id="filterSalaryMin" placeholder="最低"
+                                oninput="filterJobs()">
+                            <input type="number" class="filter-select" id="filterSalaryMax" placeholder="最高"
+                                oninput="filterJobs()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Chart -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div class="card-title">熱門地區</div>
+                    </div>
+                    <div class="large-chart-container" style="height: 400px;">
+                        <canvas id="locationChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        let jobsData = [];
+        let filteredJobs = [];
+
+        // Twisty Palette
+        const palette = {
+            orange: '#FF6E30',
+            blue: '#3F8CFF',
+            purple: '#7F56D9',
+            green: '#3DD598',
+            yellow: '#FFC542',
+            text: '#1A1D1F',
+            grid: '#F0F2F5'
+        };
+
+        // Chart.js Defaults
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = palette.text;
+        Chart.defaults.scale.grid.color = 'transparent';
+
+        async function loadData() {
+            try {
+                const response = await fetch('latest_jobs.csv');
+                const csvText = await response.text();
+                jobsData = parseCSV(csvText);
+                filteredJobs = [...jobsData];
+
+                initializeFilters();
+                updateDashboard();
+                createCharts();
+            } catch (error) {
+                console.error('載入資料失敗:', error);
+            }
+        }
+
+        function parseCSV(text) {
+            const rows = [];
+            let currentRow = [];
+            let currentVal = '';
+            let insideQuote = false;
+
+            text = text.replace(/\r/g, '');
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1];
+
+                if (char === '"') {
+                    if (insideQuote && nextChar === '"') {
+                        currentVal += '"';
+                        i++;
+                    } else {
+                        insideQuote = !insideQuote;
+                    }
+                } else if (char === ',' && !insideQuote) {
+                    currentRow.push(currentVal);
+                    currentVal = '';
+                } else if (char === '\n' && !insideQuote) {
+                    currentRow.push(currentVal);
+                    rows.push(currentRow);
+                    currentRow = [];
+                    currentVal = '';
+                } else {
+                    currentVal += char;
+                }
+            }
+
+            if (currentVal || currentRow.length > 0) {
+                currentRow.push(currentVal);
+                rows.push(currentRow);
+            }
+
+            const headers = rows[0].map(h => h.trim());
+            const data = [];
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.length <= 1 && !row[0]) continue;
+
+                if (row.length === headers.length) {
+                    const job = {};
+                    headers.forEach((header, index) => {
+                        job[header] = row[index];
+                    });
+                    data.push(job);
+                }
+            }
+            return data;
+        }
+
+        function initializeFilters() {
+            const industries = [...new Set(jobsData.map(j => j.coIndustryDesc).filter(i => i))].sort();
+            const industrySelect = document.getElementById('filterIndustry');
+            industries.forEach(industry => {
+                const option = document.createElement('option');
+                option.value = industry;
+                option.textContent = industry;
+                industrySelect.appendChild(option);
+            });
+
+            const locations = [...new Set(jobsData.map(j => j.jobAddrNoDesc).filter(l => l))].sort();
+            const locationSelect = document.getElementById('filterLocation');
+            locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                locationSelect.appendChild(option);
+            });
+
+            const skills = extractTopSkills(jobsData);
+            const skillSelect = document.getElementById('filterSkill');
+            skills.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.skill;
+                option.textContent = `${s.skill} (${s.count})`;
+                skillSelect.appendChild(option);
+            });
+
+            const experiences = [...new Set(jobsData.map(j => j.periodDesc).filter(e => e))].sort();
+            const experienceSelect = document.getElementById('filterExperience');
+            experiences.forEach(exp => {
+                const option = document.createElement('option');
+                option.value = exp;
+                option.textContent = exp;
+                experienceSelect.appendChild(option);
+            });
+        }
+
+        function filterJobs() {
+            const industry = document.getElementById('filterIndustry').value;
+            const location = document.getElementById('filterLocation').value;
+            const skill = document.getElementById('filterSkill').value;
+            const experience = document.getElementById('filterExperience').value;
+            const minSalary = document.getElementById('filterSalaryMin').value;
+            const maxSalary = document.getElementById('filterSalaryMax').value;
+            const keyword = document.getElementById('searchKeyword').value.toLowerCase();
+
+            filteredJobs = jobsData.filter(job => {
+                if (industry && job.coIndustryDesc !== industry) return false;
+                if (location && job.jobAddrNoDesc !== location) return false;
+                if (experience && job.periodDesc !== experience) return false;
+                if (skill) {
+                    const text = (job.jobName + ' ' + job.description).toLowerCase();
+                    if (!text.includes(skill.toLowerCase())) return false;
+                }
+
+                // Salary Filter
+                if (minSalary || maxSalary) {
+                    if (!job.salaryLow || parseFloat(job.salaryLow) === 0) return false;
+
+                    let low = parseFloat(job.salaryLow);
+                    let high = parseFloat(job.salaryHigh);
+                    if (high >= 9999999) high = low;
+
+                    let avg = (low + high) / 2;
+                    if (job.salaryType === '年薪') avg = avg / 12;
+
+                    if (minSalary && avg < minSalary) return false;
+                    if (maxSalary && avg > maxSalary) return false;
+                }
+
+                if (keyword) {
+                    const searchText = (job.jobName + ' ' + job.description).toLowerCase();
+                    if (!searchText.includes(keyword)) return false;
+                }
+                return true;
+            });
+
+            updateJobTable();
+        }
+
+        function updateDashboard() {
+            document.getElementById('totalJobs').textContent = jobsData.length.toLocaleString();
+
+            const salaryJobs = jobsData.filter(j => j.salaryLow && parseFloat(j.salaryLow) > 0);
+            if (salaryJobs.length > 0) {
+                let totalMonthly = 0;
+                let count = 0;
+
+                salaryJobs.forEach(j => {
+                    let low = parseFloat(j.salaryLow);
+                    let high = parseFloat(j.salaryHigh);
+
+                    // Handle placeholder max
+                    if (high >= 9999999) high = low;
+
+                    let avg = (low + high) / 2;
+
+                    // Convert Yearly to Monthly
+                    if (j.salaryType === '年薪') {
+                        avg = avg / 12;
+                    }
+
+                    totalMonthly += avg;
+                    count++;
+                });
+
+                const avgSalary = totalMonthly / count;
+                document.getElementById('avgSalary').textContent = avgSalary.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
+            } else {
+                document.getElementById('avgSalary').textContent = 'N/A';
+            }
+
+            const skills = extractTopSkills(jobsData);
+            if (skills.length > 0) {
+                document.getElementById('topSkill').textContent = skills[0].skill;
+            }
+
+            updateJobTable();
+        }
+
+        function extractTopSkills(jobs) {
+            const skillKeywords = [
+                'AI Agent', 'LLM', 'GPT', 'ChatGPT', 'Claude',
+                '生成式AI', 'Generative AI', 'GenAI',
+                'RAG', 'Prompt Engineering', 'Prompt',
+                '機器學習', 'Machine Learning', 'ML',
+                '深度學習', 'Deep Learning', 'DL',
+                'NLP', '自然語言處理',
+                'Computer Vision', '電腦視覺',
+                'Python', 'TensorFlow', 'PyTorch',
+                'API', 'RESTful', 'FastAPI',
+                'Docker', 'Kubernetes', 'K8s',
+                'AWS', 'Azure', 'GCP', '雲端',
+                'RPA', 'UiPath', 'Automation Anywhere',
+                'Power Automate', 'n8n', 'Dify',
+                'Langchain', 'LlamaIndex',
+                'React', 'Vue', 'Node.js',
+                'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL'
+            ];
+
+            const skillCounts = {};
+            skillKeywords.forEach(skill => skillCounts[skill] = 0);
+
+            jobs.forEach(job => {
+                const text = (job.jobName + ' ' + job.description).toLowerCase();
+                skillKeywords.forEach(skill => {
+                    if (text.includes(skill.toLowerCase())) {
+                        skillCounts[skill]++;
+                    }
+                });
+            });
+
+            return Object.entries(skillCounts)
+                .map(([skill, count]) => ({ skill, count }))
+                .filter(item => item.count > 0)
+                .sort((a, b) => b.count - a.count);
+        }
+
+        function updateJobTable() {
+            const tbody = document.getElementById('jobTableBody');
+            tbody.innerHTML = '';
+            document.getElementById('jobCount').textContent = filteredJobs.length;
+
+            const displayJobs = filteredJobs.slice(0, 50);
+
+            displayJobs.forEach(job => {
+                const row = document.createElement('tr');
+
+                const salaryText = job.salaryLow && parseFloat(job.salaryLow) > 0
+                    ? `${parseFloat(job.salaryLow).toLocaleString()} - ${parseFloat(job.salaryHigh).toLocaleString()}`
+                    : job.salaryType || '面議';
+
+                row.innerHTML = `
+                    <td><a href="${job.jobLink}" target="_blank" class="link-job">${job.jobName}</a></td>
+                    <td style="color:var(--text-secondary);">${job.custName || '-'}</td>
+                    <td><span class="job-tag">${job.coIndustryDesc || '-'}</span></td>
+                    <td>${salaryText}</td>
+                    <td>${job.periodDesc || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // --- Chart Creations with New Styles ---
+
+        function createCharts() {
+            createSkillsChart();
+            createSalaryChart();
+            createIndustryChart();
+            createExperienceChart();
+            createLocationChart();
+        }
+
+        function createSkillsChart() {
+            const skills = extractTopSkills(jobsData).slice(0, 15);
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+
+            const gradient = ctx.createLinearGradient(0, 0, 400, 0);
+            gradient.addColorStop(0, palette.blue);
+            gradient.addColorStop(1, '#60a5fa');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: skills.map(s => s.skill),
+                    datasets: [{
+                        label: '需求數',
+                        data: skills.map(s => s.count),
+                        backgroundColor: gradient,
+                        borderRadius: 8,
+                        barThickness: 12
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 12, weight: '500' },
+                                color: palette.text
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createSalaryChart() {
+            const salaryJobs = jobsData.filter(j => j.salaryLow && parseFloat(j.salaryLow) > 0);
+            const ranges = {
+                '30K以下': 0, '30-40K': 0, '40-50K': 0, '50-60K': 0,
+                '60-70K': 0, '70-80K': 0, '80-100K': 0, '100K以上': 0
+            };
+
+            salaryJobs.forEach(job => {
+                let low = parseFloat(job.salaryLow);
+                let high = parseFloat(job.salaryHigh);
+                if (high >= 9999999) high = low;
+
+                let salary = (low + high) / 2;
+                if (job.salaryType === '年薪') salary = salary / 12;
+
+                if (salary < 30000) ranges['30K以下']++;
+                else if (salary < 40000) ranges['30-40K']++;
+                else if (salary < 50000) ranges['40-50K']++;
+                else if (salary < 60000) ranges['50-60K']++;
+                else if (salary < 70000) ranges['60-70K']++;
+                else if (salary < 80000) ranges['70-80K']++;
+                else if (salary < 100000) ranges['80-100K']++;
+                else ranges['100K以上']++;
+            });
+
+            const ctx = document.getElementById('salaryChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ranges),
+                    datasets: [{
+                        data: Object.values(ranges),
+                        backgroundColor: palette.green,
+                        borderRadius: 6,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createIndustryChart() {
+            const industryCounts = {};
+            jobsData.forEach(job => {
+                if (job.coIndustryDesc) {
+                    industryCounts[job.coIndustryDesc] = (industryCounts[job.coIndustryDesc] || 0) + 1;
+                }
+            });
+            const top5 = Object.entries(industryCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+            const ctx = document.getElementById('industryChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: top5.map(i => i[0]),
+                    datasets: [{
+                        data: top5.map(i => i[1]),
+                        backgroundColor: [palette.blue, palette.orange, palette.purple, palette.green, palette.yellow],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 6 } }
+                    }
+                }
+            });
+        }
+
+        function createExperienceChart() {
+            const expCounts = {};
+            jobsData.forEach(job => {
+                if (job.periodDesc) {
+                    expCounts[job.periodDesc] = (expCounts[job.periodDesc] || 0) + 1;
+                }
+            });
+            const sortedExp = Object.entries(expCounts).sort((a, b) => b[1] - a[1]);
+
+            const ctx = document.getElementById('experienceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: sortedExp.map(e => e[0]),
+                    datasets: [{
+                        data: sortedExp.map(e => e[1]),
+                        backgroundColor: [palette.purple, palette.blue, palette.green, palette.yellow, palette.orange],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 6 } }
+                    }
+                }
+            });
+        }
+
+        function createLocationChart() {
+            const locationCounts = {};
+            jobsData.forEach(job => {
+                if (job.jobAddrNoDesc) {
+                    locationCounts[job.jobAddrNoDesc] = (locationCounts[job.jobAddrNoDesc] || 0) + 1;
+                }
+            });
+            const top5 = Object.entries(locationCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+            const ctx = document.getElementById('locationChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: top5.map(l => l[0]),
+                    datasets: [{
+                        data: top5.map(l => l[1]),
+                        backgroundColor: palette.orange,
+                        borderRadius: 6,
+                        barThickness: 16
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

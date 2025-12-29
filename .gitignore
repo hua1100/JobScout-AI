@@ -1,0 +1,22 @@
+# Python / Virtual Env
+__pycache__/
+*.pyc
+.venv/
+venv/
+.python-version
+
+# Environment Variables (Sensitive!)
+.env
+
+# System Files
+.DS_Store
+.idea/
+.vscode/
+
+# Scrapy Output
+# 忽略所有 timestamp 的 csv，只保留 latest_jobs.csv
+ai_jobs_*.csv
+!scraper/latest_jobs.csv
+
+# Logs
+*.log

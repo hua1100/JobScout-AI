@@ -1,0 +1,70 @@
+name: Weekly Job Scraper
+
+on:
+  schedule:
+    # 每週一 00:00 UTC (台灣時間 08:00) 執行
+    - cron: '0 0 * * 1'
+  workflow_dispatch: # 允許手動觸發
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 需要寫入權限來 Commit 新資料
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Run Scraper
+      run: |
+        # 執行爬蟲，輸出會產生在專案根目錄或 scraper/ 目錄下 (視 scrapy 設定而定)
+        # 這裡假設 run_scraper.sh 或直接執行 scrapy
+        # 我們直接用 scrapy 指令比較單純，避免環境差異
+        scrapy crawl 104_ai_jobs
+      env:
+        # 如果需要環境變數可以在這裡設定
+        LOG_LEVEL: INFO
+
+    - name: Process and Commit Data
+      run: |
+        # 找出最新產生的 CSV 檔案 (假設格式為 ai_jobs_*.csv)
+        # 根據 settings.py，檔案可能在根目錄
+        LATEST_CSV=$(ls -t ai_jobs_*.csv | head -n 1)
+        
+        if [ -z "$LATEST_CSV" ]; then
+          echo "Error: No CSV file found!"
+          exit 1
+        fi
+        
+        echo "Found latest CSV: $LATEST_CSV"
+        
+        # 移動並重新命名到 scraper/latest_jobs.csv (儀表板讀取的位置)
+        # 確保 scraper 目錄存在
+        mkdir -p scraper
+        mv "$LATEST_CSV" scraper/latest_jobs.csv
+        
+        # 設定 Git 使用者 (GitHub Actions Bot)
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        # 加入並提交檔案
+        git add scraper/latest_jobs.csv
+        
+        # 只有在有變更時才 Commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update job data: $(date +'%Y-%m-%d')"
+          git push
+        fi
