@@ -747,7 +747,7 @@
 
                     let low = parseFloat(job.salaryLow);
                     let high = parseFloat(job.salaryHigh);
-                    if (high >= 9999999) high = low;
+                    if (high >= 9999999) high = low * 1.2;
 
                     let avg = (low + high) / 2;
                     if (job.salaryType === '年薪') avg = avg / 12;
@@ -779,7 +779,7 @@
                     let high = parseFloat(j.salaryHigh);
 
                     // Handle placeholder max
-                    if (high >= 9999999) high = low;
+                    if (high >= 9999999) high = low * 1.2;
 
                     let avg = (low + high) / 2;
 
@@ -930,7 +930,7 @@
             salaryJobs.forEach(job => {
                 let low = parseFloat(job.salaryLow);
                 let high = parseFloat(job.salaryHigh);
-                if (high >= 9999999) high = low;
+                if (high >= 9999999) high = low * 1.2;
 
                 let salary = (low + high) / 2;
                 if (job.salaryType === '年薪') salary = salary / 12;
