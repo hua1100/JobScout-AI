@@ -591,6 +591,11 @@
 
     <!-- Scripts -->
     <script>
+        // 設定區：如果您複製此檔案到其他資料夾，只需修改此處的 CSV 檔名即可
+        const CONFIG = {
+            DATA_SOURCE: 'latest_jobs.csv'
+        };
+
         let jobsData = [];
         let filteredJobs = [];
 
@@ -612,7 +617,7 @@
 
         async function loadData() {
             try {
-                const response = await fetch('latest_jobs.csv');
+                const response = await fetch(CONFIG.DATA_SOURCE);
                 const csvText = await response.text();
                 jobsData = parseCSV(csvText);
                 filteredJobs = [...jobsData];
